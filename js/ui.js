@@ -5,7 +5,7 @@ const $ = (id) => document.getElementById(id);
 
 const Input = {
   keys: {}, pressed: {}, mouse: { x: 0, y: 0, down: false, active: false }, touch: false,
-  stick: { id: null, ox: 0, oy: 0, x: 0, y: 0 }, btnA: false,
+  stick: { id: null, ox: 0, oy: 0, x: 0, y: 0 }, look: { id: null, x: 0, y: 0, moved: 0 }, btnA: false,
 
   init() {
     window.addEventListener('keydown', (e) => {
@@ -29,21 +29,26 @@ const Input = {
     window.addEventListener('click', unlock);
     document.addEventListener('gesturestart', (e) => e.preventDefault());
     document.addEventListener('dblclick', (e) => e.preventDefault());
-    window.addEventListener('blur', () => { this.keys = {}; this.mouse.down = false; this.btnA = false; });
+    window.addEventListener('blur', () => { this.keys = {}; this.mouse.down = false; this.btnA = false; this.look.id = null; });
 
     const cv = View.canvas;
     cv.addEventListener('pointerdown', (e) => {
       Sound.init();
       if (e.pointerType === 'touch') {
         this.setTouch(true);
-        if (this.stick.id === null) {
+        if (View.is3D && e.clientX > window.innerWidth * 0.45 && this.look.id === null) {
+          this.look.id = e.pointerId; this.look.x = e.clientX; this.look.y = e.clientY;
+        } else if (this.stick.id === null) {
           this.stick.id = e.pointerId; this.stick.ox = e.clientX; this.stick.oy = e.clientY; this.stick.x = 0; this.stick.y = 0;
           UI.showStick(e.clientX, e.clientY);
         }
       } else {
         this.setTouch(false);
         if (e.button === 0) this.mouse.down = true;
-        if (e.button === 2) this.pressed.interact = true;
+        if (e.button === 2) {
+          if (View.is3D) { this.look.id = e.pointerId; this.look.x = e.clientX; this.look.y = e.clientY; this.look.moved = 0; }
+          else this.pressed.interact = true;
+        }
       }
     });
     cv.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -51,6 +56,11 @@ const Input = {
       if (e.pointerType === 'mouse') {
         this.mouse.x = e.clientX; this.mouse.y = e.clientY; this.mouse.active = true;
         if (this.touch) this.setTouch(false);
+      }
+      if (e.pointerId === this.look.id) {
+        const dx = e.clientX - this.look.x, dy = e.clientY - this.look.y;
+        this.look.x = e.clientX; this.look.y = e.clientY; this.look.moved += Math.abs(dx) + Math.abs(dy);
+        orbitCamera(dx * (e.pointerType === 'touch' ? 1.1 : 0.8), dy * (e.pointerType === 'touch' ? 1.1 : 0.8));
       }
       if (e.pointerId === this.stick.id) {
         let dx = e.clientX - this.stick.ox, dy = e.clientY - this.stick.oy;
@@ -62,6 +72,10 @@ const Input = {
     });
     const end = (e) => {
       if (e.pointerType === 'mouse' && e.button === 0) this.mouse.down = false;
+      if (e.pointerId === this.look.id) {
+        if (e.pointerType === 'mouse' && this.look.moved < 6) this.pressed.interact = true;
+        this.look.id = null;
+      }
       if (e.pointerId === this.stick.id) { this.stick.id = null; this.stick.x = 0; this.stick.y = 0; UI.hideStick(); }
     };
     window.addEventListener('pointerup', end);
@@ -97,13 +111,13 @@ const Input = {
     if (k.KeyD || k.ArrowRight) x += 1;
     if (k.KeyW || k.ArrowUp) y -= 1;
     if (k.KeyS || k.ArrowDown) y += 1;
-    if (x || y) { const d = Math.hypot(x, y); return { x: x / d, y: y / d }; }
-    if (this.stick.id !== null) {
-      const d = Math.hypot(this.stick.x, this.stick.y);
-      if (d < 0.15) return { x: 0, y: 0 };
-      return { x: this.stick.x, y: this.stick.y };
-    }
-    return { x: 0, y: 0 };
+    let v = { x: 0, y: 0 };
+    if (x || y) { const d = Math.hypot(x, y); v = { x: x / d, y: y / d }; }
+    else if (this.stick.id !== null && Math.hypot(this.stick.x, this.stick.y) >= 0.15) v = { x: this.stick.x, y: this.stick.y };
+    if (!View.is3D || (!v.x && !v.y)) return v;
+    // screen-up walks away from the camera
+    const fx = Math.cos(View.yaw), fy = Math.sin(View.yaw);
+    return { x: fx * -v.y + -fy * v.x, y: fy * -v.y + fx * v.x };
   },
   sprint() { return this.keys.ShiftLeft || this.keys.ShiftRight || (this.stick.id !== null && Math.hypot(this.stick.x, this.stick.y) > 0.93); },
   attackHeld() { return (this.mouse.down && !UI.overlayOpen()) || this.btnA || this.keys.Space; },

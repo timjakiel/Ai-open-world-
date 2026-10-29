@@ -47,6 +47,7 @@ function findSpawn() {
 
 function resetWorld(seed) {
   World.seed = seed;
+  Game.genStamp = (Game.genStamp || 0) + 1;
   World.chunks.clear(); World.minis.clear(); World.removed.clear();
   World.structs.length = 0; World.buckets.clear();
   placeShrines();

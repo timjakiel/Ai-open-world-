@@ -1,6 +1,8 @@
 # Emberwild
 
-An open-world survival game that runs in the browser. No build step, no dependencies.
+A 3D open-world survival game that runs in the browser, including on iPhone. No build step. Three.js r128 is vendored in `vendor/`.
+
+The original top-down version is still playable at `classic.html`.
 
 You wash ashore on an endless, procedurally generated wild. Keep yourself fed, watered and warm, survive the nights, and hunt down the three stone circles that each hold an Ancient Shard and the Stone Guardian protecting it. Forge the shards into **The Beacon**, light it, and hold out until dawn against everything the dark throws at you.
 
@@ -20,9 +22,10 @@ Progress autosaves to your browser.
 | Action | Keyboard / mouse | Touch |
 | --- | --- | --- |
 | Move | WASD / arrows | Drag on the left side |
+| Turn camera | Right-drag | Swipe on the right side |
 | Sprint | Shift | Push the stick to the edge |
 | Strike / use selected item | Left click or Space | **Strike** button |
-| Pick up, drink, refuel, sleep, interact | E or right click | **Use** button |
+| Pick up, drink, refuel, sleep, interact | E (or a right click without dragging) | **Use** button |
 | Select hotbar slot | 1–8 or mouse wheel | Tap a slot |
 | Crafting | C | **Craft** |
 | Map | M | **Map** |
@@ -49,7 +52,8 @@ Progress autosaves to your browser.
 | `js/world.js` | Terrain and biome generation, chunks, structures, shrines |
 | `js/sprites.js` | Pre-rendered sprites and item icons |
 | `js/game.js` | Simulation: player, survival, AI, combat, crafting, building |
-| `js/render.js` | Canvas renderer: terrain, y-sorted world, lighting, weather |
+| `js/render3d.js` | 3D renderer: low-poly terrain, instanced vegetation, models, lights, sky, weather, orbit camera |
+| `js/render.js` | Top-down canvas renderer used by `classic.html` |
 | `js/ui.js` | Input and HUD |
 | `js/audio.js` | WebAudio sound effects |
 | `js/main.js` | Boot, loop, saving, tips |

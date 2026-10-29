@@ -199,6 +199,29 @@
   @media (max-width: 560px) { .howto { grid-template-columns: 1fr; } .howto div { padding: 8px 12px; } }
   .howto div { padding: 10px 12px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); font-size: 13px; line-height: 1.35; color: #d8cfbe; }
   .howto b { display: block; font-family: var(--f-display); font-weight: 400; font-size: 17px; color: var(--parch); margin-bottom: 2px; }
+  .alt { color: var(--ember); font-weight: 700; }
+  #view { cursor: default; }
+  /* in-world labels drawn over the 3D view */
+  #wui { position: absolute; inset: 0; pointer-events: none; overflow: hidden; display: none; }
+  body.playing #wui { display: block; }
+  #wui > div { position: absolute; left: 0; top: 0; will-change: transform; }
+  .whint { margin: -14px 0 0 0; translate: -50% -100%; padding: 4px 10px; border-radius: 7px; background: rgba(14,16,18,.8); font-weight: 700; font-size: 13px; white-space: nowrap; }
+  .whint kbd { font: 800 11px var(--f-ui); color: var(--ember); border: 1px solid rgba(255,138,61,.5); border-radius: 4px; padding: 0 4px; margin-right: 6px; }
+  .wtext { translate: -50% -50%; font-weight: 800; font-size: 16px; text-shadow: 0 1px 3px #000, 0 0 2px #000; font-variant-numeric: tabular-nums; }
+  .wbar { translate: -50% -50%; width: 40px; height: 5px; border-radius: 3px; background: rgba(0,0,0,.6); overflow: hidden; }
+  .wbar i { display: block; height: 100%; background: var(--blood); }
+  .wbar.prey i { background: var(--moss); }
+  .wmark { translate: -50% -50%; display: grid; justify-items: center; gap: 2px; color: var(--c); }
+  .wmark b { width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 12px solid var(--c); filter: drop-shadow(0 1px 2px #000); }
+  .wmark.edge b { width: 26px; height: 26px; border: 0; border-radius: 50%; background: rgba(14,16,18,.75); position: relative; }
+  .wmark.edge b::after { content: ""; position: absolute; left: 9px; top: 7px; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 10px solid var(--c); }
+  .wmark span { font-weight: 800; font-size: 11px; text-shadow: 0 1px 2px #000; white-space: nowrap; }
+  #fx, #fx i { position: absolute; inset: 0; pointer-events: none; }
+  #fx i { opacity: 0; }
+  #fx .danger { background: radial-gradient(ellipse at center, transparent 45%, rgba(160,0,10,.75)); }
+  #fx .cold { background: radial-gradient(ellipse at center, transparent 45%, rgba(170,220,255,.7)); }
+  #fx .flash { background: #dfe6ff; }
+  #fx .dark { background: #000; }
   .keys { font-size: 12px; color: var(--muted); line-height: 1.7; }
   .keys kbd { font: 700 11px var(--f-ui); color: var(--parch); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: rgba(255,255,255,.04); }
   body.touch .keys.desk { display: none; }
@@ -353,7 +376,7 @@
 
   <section id="screen-title" class="screen">
     <div class="title-wrap">
-      <div class="eyebrow">An open-world survival game</div>
+      <div class="eyebrow">A 3D open-world survival game</div>
       <h1>Emberwild</h1>
       <p class="lede">Washed ashore on an endless wild coast. Gather, craft and keep your fire burning. Three stone circles each hide an Ancient Shard and a guardian to match. Forge the Beacon and survive its last night.</p>
       <div class="cta">
@@ -365,8 +388,9 @@
         <div><b>Build</b>Campfires scare beasts away. Walls and spike traps hold the line.</div>
         <div><b>Conquer</b>Defeat three Stone Guardians, then defend the Beacon until dawn.</div>
       </div>
-      <p class="keys desk"><kbd>WASD</kbd> move · <kbd>Shift</kbd> sprint · <kbd>Click</kbd> strike / use · <kbd>E</kbd> pick up, drink, interact · <kbd>1-8</kbd> hotbar · <kbd>C</kbd> craft · <kbd>M</kbd> map · <kbd>Q</kbd> drop</p>
-      <p class="keys mob">Drag anywhere on the left to move, push to the edge to sprint. <b>Strike</b> attacks or uses your item, <b>Use</b> picks up, drinks and interacts.</p>
+      <p class="keys desk"><kbd>WASD</kbd> move · <kbd>Shift</kbd> sprint · <kbd>Click</kbd> strike / use · <kbd>Right-drag</kbd> turn camera · <kbd>E</kbd> or <kbd>Right-click</kbd> interact · <kbd>1-8</kbd> hotbar · <kbd>C</kbd> craft · <kbd>M</kbd> map · <kbd>Q</kbd> drop</p>
+      <p class="keys mob">Left thumb drags to move, push to the edge to sprint. Right thumb swipes to turn the camera. <b>Strike</b> attacks or uses your item, <b>Use</b> picks up, drinks and interacts.</p>
+      <p class="keys"><a class="alt" href="classic.html">Prefer top-down? Play Emberwild Classic</a></p>
     </div>
   </section>
 
@@ -375,7 +399,7 @@
       <h2>Paused</h2>
       <p>Your progress saves automatically.</p>
       <div class="cta"><button class="btn primary" id="btnResume" type="button">Resume</button><button class="btn" id="btnQuit" type="button">Save and quit</button></div>
-      <p class="keys desk"><kbd>WASD</kbd> move · <kbd>Shift</kbd> sprint · <kbd>Click</kbd> strike / use · <kbd>Right-click</kbd> or <kbd>E</kbd> interact · <kbd>Wheel</kbd> or <kbd>1-8</kbd> hotbar · <kbd>C</kbd> craft · <kbd>M</kbd> map · <kbd>Q</kbd> drop</p>
+      <p class="keys desk"><kbd>WASD</kbd> move · <kbd>Shift</kbd> sprint · <kbd>Click</kbd> strike / use · <kbd>Right-drag</kbd> turn camera · <kbd>E</kbd> interact · <kbd>Wheel</kbd> or <kbd>1-8</kbd> hotbar · <kbd>C</kbd> craft · <kbd>M</kbd> map · <kbd>Q</kbd> drop</p>
     </div>
   </section>
 
@@ -404,6 +428,7 @@
 <script src="js/sprites.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/game.js"></script>
-<script src="js/render.js"></script>
+<script src="vendor/three.min.js"></script>
+<script src="js/render3d.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>

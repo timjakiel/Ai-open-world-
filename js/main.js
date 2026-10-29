@@ -33,7 +33,9 @@ function boot() {
   if (save) $('continueNote').textContent = 'Day ' + save.day + ' · ' + save.shrines.filter((s) => s.claimed).length + ' of 3 shards';
   requestAnimationFrame(loop);
   document.addEventListener('visibilitychange', () => { if (document.hidden && Game.state === 'play') saveGame(); });
-  window.addEventListener('beforeunload', () => { if (Game.state === 'play' || Game.state === 'paused') saveGame(); });
+  const flush = () => { if (Game.state === 'play' || Game.state === 'paused') saveGame(); };
+  window.addEventListener('beforeunload', flush);
+  window.addEventListener('pagehide', flush);
   try { window.claude && window.claude.hot && window.claude.hot.snapshot && window.claude.hot.snapshot(() => (Game.state === 'title' ? {} : { save: serialize() })); } catch (e) { /* not in a viewer */ }
 }
 

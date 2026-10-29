@@ -23,6 +23,12 @@ const Input = {
       if (/^Digit[1-8]$/.test(code)) { Game.sel = Number(code.slice(5)) - 1; UI.dirty = true; UI.showSelName(); }
     });
     window.addEventListener('keyup', (e) => { this.keys[e.code] = false; });
+    // iOS Safari only unlocks audio inside touchend or click, and pinch would zoom the page
+    const unlock = () => Sound.init();
+    window.addEventListener('touchend', unlock, { passive: true });
+    window.addEventListener('click', unlock);
+    document.addEventListener('gesturestart', (e) => e.preventDefault());
+    document.addEventListener('dblclick', (e) => e.preventDefault());
     window.addEventListener('blur', () => { this.keys = {}; this.mouse.down = false; this.btnA = false; });
 
     const cv = View.canvas;
@@ -67,9 +73,12 @@ const Input = {
     }, { passive: true });
 
     const hold = (el, on) => {
-      el.addEventListener('pointerdown', (e) => { e.preventDefault(); Sound.init(); this.setTouch(e.pointerType !== 'mouse' || this.touch); on(true); el.classList.add('down'); });
+      el.addEventListener('pointerdown', (e) => {
+        e.preventDefault(); Sound.init(); this.setTouch(e.pointerType !== 'mouse' || this.touch); on(true); el.classList.add('down');
+        try { el.setPointerCapture(e.pointerId); } catch (err) { /* older Safari */ }
+      });
       const up = () => { on(false); el.classList.remove('down'); };
-      el.addEventListener('pointerup', up); el.addEventListener('pointerleave', up); el.addEventListener('pointercancel', up);
+      el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('lostpointercapture', up);
     };
     hold($('btnA'), (v) => { this.btnA = v; });
     hold($('btnE'), (v) => { if (v) this.pressed.interact = true; });

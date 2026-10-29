@@ -1,7 +1,12 @@
 <meta charset="utf-8">
 <title>Emberwild</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Emberwild">
+<meta name="theme-color" content="#0c1114">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Alegreya+Sans:wght@400;500;700;800&display=swap">
@@ -32,10 +37,11 @@
   html, body { height: 100%; }
   body {
     margin: 0; background: var(--night); color: var(--parch); font-family: var(--f-ui); font-size: 14px;
-    overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+    overflow: hidden; overscroll-behavior: none; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-text-size-adjust: 100%;
     padding-left: max(16px, var(--sl)); padding-right: max(16px, var(--sr));
   }
-  button { font: inherit; color: inherit; }
+  button { font: inherit; color: inherit; touch-action: manipulation; -webkit-touch-callout: none; }
+  img { -webkit-user-drag: none; -webkit-touch-callout: none; pointer-events: none; }
   button:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
   #game { position: fixed; inset: 0; }
   #view { position: absolute; inset: 0; display: block; cursor: crosshair; }
@@ -214,8 +220,8 @@
     .stat img { width: 14px; height: 14px; }
     #minimap { width: 92px; height: 92px; }
     .hbtn { min-width: 36px; height: 36px; padding: 0 8px; font-size: 12px; }
-    #clock { left: calc(150px + var(--sl)); transform: none; padding: 4px 8px 4px 5px; gap: 6px; }
-    #clockSub { max-width: 64px; overflow: hidden; text-overflow: ellipsis; }
+    #clock { left: calc(164px + var(--sl)); transform: none; padding: 4px 8px 4px 5px; gap: 6px; }
+    #clockSub { max-width: 56px; overflow: hidden; text-overflow: ellipsis; }
     #dial { width: 26px; height: 26px; }
     #clockDay { font-size: 16px; }
     #clockSub { font-size: 10px; }
@@ -232,6 +238,40 @@
     #kit img { width: 16px; height: 16px; }
     #pickups { top: calc(150px + var(--st)); }
     #side { gap: 6px; }
+  }
+  /* iPhone held sideways: short screen, lots of width */
+  @media (max-height: 500px) {
+    #stats { width: 132px; padding: 7px; gap: 4px; }
+    .stat { grid-template-columns: 14px 1fr; gap: 6px; }
+    .stat img { width: 14px; height: 14px; }
+    #kit img { width: 16px; height: 16px; }
+    #minimap { width: 84px; height: 84px; }
+    #side { flex-direction: row; display: flex; align-items: flex-start; gap: 6px; }
+    #buttons { flex-direction: column; }
+    .hbtn { min-width: 34px; height: 30px; padding: 0 8px; font-size: 12px; }
+    .hbtn kbd { display: none; }
+    #clock { padding: 3px 10px 3px 5px; }
+    #dial { width: 24px; height: 24px; }
+    #clockDay { font-size: 15px; }
+    #clockSub { font-size: 10px; }
+    #toasts { top: calc(52px + var(--st)); width: min(440px, 50vw); }
+    .toast, .toast.gold { font-size: 12px; padding: 5px 10px; }
+    #bossbar { top: calc(50px + var(--st)); }
+    body.boss #toasts { top: calc(92px + var(--st)); }
+    #stand { top: calc(88px + var(--st)); padding: 5px 10px; }
+    #pickups { top: calc(130px + var(--st)); }
+    .slot { width: 40px; height: 40px; }
+    .slot img { width: 28px; height: 28px; }
+    #hotbar { gap: 3px; padding: 4px; }
+    #btnDrop { display: none; }
+    #bottom { bottom: calc(6px + var(--sb)); gap: 4px; }
+    body.touch #actions { bottom: calc(20px + var(--sb)); right: calc(14px + var(--sr)); }
+    #btnA { width: 70px; height: 70px; }
+    #btnE { width: 52px; height: 52px; margin-bottom: 30px; }
+    #craft { width: min(380px, 60vw); }
+    .screen { place-items: start center; }
+    .howto { grid-template-columns: repeat(3, 1fr); }
+    h1 { font-size: 64px; }
   }
   @media (max-width: 640px) { body.touch #bottom { bottom: calc(10px + var(--sb)); } }
   body.touch #actions { bottom: calc(110px + var(--sb)); }

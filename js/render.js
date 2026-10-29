@@ -327,7 +327,6 @@ function drawFlame(ctx, x, y, s) {
 
 function drawStruct(ctx, s, lights, night) {
   const def = STRUCTS[s.type];
-  if (s.hurt > 0) ctx.filter = 'brightness(1.8)';
   if (s.type === 'campfire') {
     drawSprite(ctx, Sprites.campfire, s.x, s.y);
     if (s.lit) {
@@ -356,7 +355,7 @@ function drawStruct(ctx, s, lights, night) {
     drawSprite(ctx, Sprites[s.type], s.x, s.y);
     if (s.type === 'grave') Game.glows.push({ x: s.x, y: s.y - 24, r: 4, c: 'rgba(255,230,150,' + (0.4 + Math.sin(View.clock * 3) * 0.2) + ')' });
   }
-  ctx.filter = 'none';
+  if (s.hurt > 0) { ctx.globalAlpha = 0.45; circle(ctx, s.x, s.y - 12, 18, '#ffffff'); ctx.globalAlpha = 1; }
   if (s.hp < def.hp && def.hp < 9999) {
     ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(s.x - 12, s.y + 8, 24, 3);
     ctx.fillStyle = '#e0a040'; ctx.fillRect(s.x - 12, s.y + 8, 24 * clamp(s.hp / def.hp, 0, 1), 3);
@@ -445,7 +444,6 @@ function drawPlayer(ctx, p) {
 function drawMob(ctx, m, night) {
   const t = m.anim;
   const moving = Math.hypot(m.vx, m.vy) > 10;
-  if (m.hurt > 0) ctx.filter = 'brightness(2.4)';
   ctx.save();
   ctx.translate(m.x, m.y);
   const lunge = (m.lunge || 0) * 20;
@@ -598,7 +596,12 @@ function drawMob(ctx, m, night) {
     }
   }
   ctx.restore();
-  ctx.filter = 'none';
+  if (m.hurt > 0) {
+    const k = m.type === 'hollow' ? 2.4 : 1;
+    ctx.globalAlpha = clamp(m.hurt * 4, 0, 0.6);
+    ellipse(ctx, m.x, m.y - m.r * 0.9 * k, m.r * 1.2 * k, m.r * k, '#ffffff');
+    ctx.globalAlpha = 1;
+  }
 }
 
 // ---------------------------------------------------------------- weather

@@ -1,0 +1,369 @@
+<meta charset="utf-8">
+<title>Emberwild</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Alegreya+Sans:wght@400;500;700;800&display=swap">
+<style>
+  /* Layout: full-bleed canvas world, field-journal HUD pinned to the safe edges. One dark look, by choice. */
+  :root {
+    --night: #0c1114;
+    --panel: rgba(13, 17, 19, 0.8);
+    --panel-solid: #141a1d;
+    --line: rgba(239, 230, 214, 0.14);
+    --parch: #efe6d6;
+    --muted: #a39b8b;
+    --ember: #ff8a3d;
+    --gold: #e8c86a;
+    --frost: #9fd8ff;
+    --blood: #e5484d;
+    --moss: #8fc45a;
+    --violet: #b48cff;
+    --f-display: "IM Fell English SC", "Iowan Old Style", Georgia, serif;
+    --f-ui: "Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;
+    --sl: env(safe-area-inset-left, 0px);
+    --sr: env(safe-area-inset-right, 0px);
+    --st: env(safe-area-inset-top, 0px);
+    --sb: env(safe-area-inset-bottom, 0px);
+    color-scheme: dark;
+  }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--night); color: var(--parch); font-family: var(--f-ui); font-size: 14px;
+    overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+    padding-left: max(16px, var(--sl)); padding-right: max(16px, var(--sr));
+  }
+  button { font: inherit; color: inherit; }
+  button:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+  #game { position: fixed; inset: 0; }
+  #view { position: absolute; inset: 0; display: block; cursor: crosshair; }
+
+  /* ---------------- HUD */
+  #hud { position: absolute; inset: 0; pointer-events: none; display: none; }
+  body.playing #hud { display: block; }
+  #hud > * { pointer-events: auto; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+
+  #stats { position: absolute; top: calc(12px + var(--st)); left: calc(12px + var(--sl)); padding: 10px 12px 10px 10px; display: grid; gap: 6px; width: 172px; pointer-events: none; }
+  .stat { display: grid; grid-template-columns: 18px 1fr; align-items: center; gap: 8px; }
+  .stat img { width: 18px; height: 18px; }
+  .bar { position: relative; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.08); overflow: hidden; }
+  .bar i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; transition: width .25s linear; }
+  #bar-hp { background: linear-gradient(90deg, #b8262c, var(--blood)); }
+  #bar-food { background: linear-gradient(90deg, #b8792a, #e0a040); }
+  #bar-water { background: linear-gradient(90deg, #2c78b8, #4aa8e8); }
+  #bar-warm { background: linear-gradient(90deg, #6fb8e8, #ff9a3d); }
+  #bar-stam { background: var(--moss); }
+  .stat.thin .bar { height: 4px; }
+  .stat.low .bar { animation: pulse .8s ease-in-out infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 2px rgba(229,72,77,.6); } }
+  #warmTrend { position: absolute; right: 2px; top: -3px; font-size: 9px; letter-spacing: -1px; }
+  #warmTrend.cold { color: var(--frost); } #warmTrend.hot { color: var(--ember); }
+  .stat .bar-wrap { position: relative; }
+
+  #clock { position: absolute; top: calc(12px + var(--st)); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 8px; pointer-events: none; }
+  #dial { width: 34px; height: 34px; }
+  #clockDay { font-family: var(--f-display); font-size: 20px; line-height: 1; letter-spacing: .02em; }
+  #clockSub { font-size: 11px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 2px; white-space: nowrap; }
+
+  #side { position: absolute; top: calc(12px + var(--st)); right: calc(12px + var(--sr)); display: grid; gap: 8px; justify-items: end; }
+  #minimapWrap { padding: 4px; }
+  #minimap { display: block; width: 132px; height: 132px; border-radius: 7px; image-rendering: pixelated; }
+  #buttons { display: flex; gap: 6px; }
+  .hbtn { min-width: 40px; height: 40px; padding: 0 10px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 13px; }
+  .hbtn:hover { border-color: rgba(255,138,61,.6); }
+  .hbtn kbd { font: 700 10px var(--f-ui); color: var(--ember); border: 1px solid rgba(255,138,61,.5); border-radius: 4px; padding: 0 4px; }
+  body.touch .hbtn kbd { display: none; }
+  #btnSound.off { opacity: .5; text-decoration: line-through; }
+
+  #bottom { position: absolute; left: 50%; bottom: calc(12px + var(--sb)); transform: translateX(-50%); display: grid; justify-items: center; gap: 8px; }
+  #pouch { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: 92vw; pointer-events: none; }
+  .mat { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px 2px 4px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .mat img { width: 18px; height: 18px; }
+  .mat.shard { border-color: rgba(180,140,255,.5); color: var(--violet); }
+  .mat i { font-style: normal; color: var(--muted); font-weight: 500; }
+  #hotrow { display: flex; align-items: center; gap: 8px; }
+  #hotbar { display: flex; gap: 5px; padding: 5px; }
+  .slot { position: relative; width: 50px; height: 50px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid var(--line); cursor: pointer; padding: 0; }
+  .slot img { width: 34px; height: 34px; display: block; margin: auto; }
+  .slot.sel { border-color: var(--ember); background: rgba(255,138,61,0.16); box-shadow: 0 0 0 1px var(--ember) inset; }
+  .slot kbd { position: absolute; top: 2px; left: 4px; font: 700 10px var(--f-ui); color: var(--muted); }
+  body.touch .slot kbd { display: none; }
+  .slot .n { position: absolute; right: 4px; bottom: 2px; font-weight: 800; font-size: 12px; text-shadow: 0 1px 2px #000; font-variant-numeric: tabular-nums; }
+  .slot .sips { position: absolute; left: 3px; bottom: 2px; font-size: 9px; color: var(--frost); font-weight: 700; }
+  #kit { display: flex; gap: 4px; padding-top: 4px; border-top: 1px solid var(--line); }
+  #kit img { width: 22px; height: 22px; }
+  .recipe.owned { opacity: .4; }
+  .recipe.owned .cost::before { content: "Owned"; font-size: 11px; font-weight: 800; color: var(--moss); letter-spacing: .06em; text-transform: uppercase; }
+  .recipe.owned .cost .c { display: none; }
+  #btnDrop { height: 34px; min-width: 34px; font-size: 12px; }
+  #selname { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translate(-50%, 6px); white-space: nowrap; text-align: center; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; text-shadow: 0 1px 3px #000; }
+  #selname.on { opacity: 1; transform: translate(-50%, 0); }
+  #selname b { display: block; font-family: var(--f-display); font-size: 18px; font-weight: 400; }
+  #selname span { font-size: 12px; color: var(--muted); }
+
+  #toasts { position: absolute; top: calc(66px + var(--st)); left: 50%; transform: translateX(-50%); display: grid; gap: 6px; justify-items: center; width: min(560px, 76vw); pointer-events: none; }
+  .toast { padding: 7px 14px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); font-size: 14px; text-align: center; text-wrap: balance; animation: tin .25s ease-out; transition: opacity .5s; }
+  .toast.warn { border-color: rgba(229,72,77,.55); }
+  .toast.good { border-color: rgba(143,196,90,.55); }
+  .toast.gold { border-color: rgba(232,200,106,.6); color: #f7e7b4; font-family: var(--f-display); font-size: 16px; }
+  .toast.tip { border-color: rgba(255,138,61,.5); }
+  .toast.tip::before { content: "Tip  "; color: var(--ember); font-weight: 800; letter-spacing: .08em; font-size: 11px; text-transform: uppercase; }
+  .toast.out { opacity: 0; }
+  @keyframes tin { from { opacity: 0; transform: translateY(-6px); } }
+  #pickups { position: absolute; left: calc(14px + var(--sl)); top: calc(178px + var(--st)); display: grid; gap: 4px; pointer-events: none; }
+  .pick { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; text-shadow: 0 1px 2px #000; animation: pin 1.8s ease-out forwards; }
+  .pick img { width: 18px; height: 18px; }
+  @keyframes pin { 0% { opacity: 0; transform: translateX(-8px); } 12% { opacity: 1; transform: none; } 80% { opacity: 1; } 100% { opacity: 0; } }
+
+  #bossbar { position: absolute; top: calc(66px + var(--st)); left: 50%; transform: translateX(-50%); width: min(420px, 70vw); text-align: center; pointer-events: none; }
+  #bossName { font-family: var(--f-display); font-size: 18px; color: #f2d7ff; text-shadow: 0 1px 4px #000; }
+  #bossbar .bar { height: 10px; border: 1px solid rgba(180,140,255,.5); margin-top: 3px; }
+  #bossFill { background: linear-gradient(90deg, #6b3fc0, var(--violet)); }
+  body.boss #toasts { top: calc(110px + var(--st)); }
+  #stand { position: absolute; top: calc(112px + var(--st)); left: 50%; transform: translateX(-50%); width: min(420px, 70vw); padding: 8px 12px; display: grid; gap: 5px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); pointer-events: none; }
+  #stand .bar { height: 6px; }
+  #standFill { background: linear-gradient(90deg, #ff8a3d, #ffe27a); }
+  #standBeacon { background: var(--violet); }
+
+  /* touch controls */
+  #touchpad { display: none; }
+  body.touch #touchpad { display: block; }
+  #stick { position: absolute; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 2px solid rgba(239,230,214,.25); background: rgba(13,17,19,.35); pointer-events: none; }
+  #stickKnob { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; border-radius: 50%; background: rgba(239,230,214,.35); transform: translate(-50%,-50%); }
+  #actions { position: absolute; right: calc(16px + var(--sr)); bottom: calc(96px + var(--sb)); display: grid; grid-template-columns: auto auto; align-items: end; gap: 12px; }
+  .tbtn { border-radius: 50%; border: 2px solid var(--line); background: var(--panel); display: grid; place-items: center; font-weight: 800; letter-spacing: .04em; touch-action: none; }
+  #btnA { width: 78px; height: 78px; border-color: rgba(255,138,61,.6); font-size: 15px; }
+  #btnE { width: 58px; height: 58px; font-size: 13px; margin-bottom: 40px; }
+  #btnE.ready { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 14px rgba(232,200,106,.35); }
+  .tbtn.down { background: rgba(255,138,61,.3); }
+  #hint-touch { position: absolute; left: calc(20px + var(--sl)); bottom: calc(110px + var(--sb)); color: var(--muted); font-size: 12px; pointer-events: none; opacity: .8; }
+
+  /* ---------------- panels */
+  #craft { position: absolute; top: calc(12px + var(--st)); bottom: calc(12px + var(--sb)); right: calc(12px + var(--sr)); width: min(400px, calc(100vw - 24px - var(--sl) - var(--sr))); display: flex; flex-direction: column; background: rgba(16,20,22,.94); border: 1px solid var(--line); border-radius: 14px; z-index: 5; }
+  #craft header { display: flex; align-items: baseline; justify-content: space-between; padding: 14px 16px 8px; border-bottom: 1px solid var(--line); }
+  #craft h2 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: 26px; }
+  #craft header p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+  #craftClose { background: none; border: 1px solid var(--line); border-radius: 8px; height: 32px; padding: 0 10px; cursor: pointer; }
+  #craftList { overflow-y: auto; padding: 4px 10px 14px; overscroll-behavior: contain; touch-action: pan-y; }
+  #craftList section { display: grid; gap: 4px; margin-top: 10px; }
+  #craftList h3 { margin: 4px 6px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); font-weight: 800; display: flex; justify-content: space-between; gap: 8px; }
+  #craftList h3 small { font-weight: 500; letter-spacing: .02em; text-transform: none; color: var(--muted); font-size: 11px; text-align: right; }
+  #craftList h3 small.ok { color: var(--moss); }
+  .recipe { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 9px; border: 1px solid transparent; background: rgba(255,255,255,.03); text-align: left; cursor: pointer; opacity: .55; }
+  .recipe.can { opacity: 1; border-color: rgba(143,196,90,.35); background: rgba(143,196,90,.08); }
+  .recipe.can:hover { border-color: var(--moss); }
+  .recipe.locked { opacity: .35; }
+  .recipe .ic { width: 36px; height: 36px; }
+  .recipe .nm { font-weight: 700; font-size: 14px; min-width: 0; }
+  .recipe .nm em { font-style: normal; color: var(--muted); font-weight: 500; }
+  .recipe .nm small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; line-height: 1.25; }
+  .recipe .cost { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; max-width: 130px; }
+  .recipe .c { display: inline-flex; align-items: center; gap: 1px; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .recipe .c img { width: 16px; height: 16px; }
+  .recipe .c.short { color: var(--blood); }
+
+  #bigmap { position: absolute; inset: 0; background: rgba(6,9,11,.82); display: grid; place-items: center; z-index: 5; padding: calc(20px + var(--st)) max(16px, var(--sr)) calc(20px + var(--sb)) max(16px, var(--sl)); }
+  #bigmap figure { margin: 0; width: min(760px, 100%); display: grid; gap: 8px; }
+  #bigmapCanvas { width: 100%; aspect-ratio: 4 / 3; max-height: 72vh; border-radius: 12px; border: 1px solid var(--line); image-rendering: pixelated; }
+  #bigmap figcaption { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; color: var(--muted); font-size: 12px; }
+  #bigmap figcaption b { font-family: var(--f-display); font-weight: 400; font-size: 22px; color: var(--parch); }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .legend i { display: inline-block; width: 8px; height: 8px; margin-right: 4px; vertical-align: middle; }
+
+  /* ---------------- screens */
+  .screen { position: absolute; inset: 0; display: grid; place-items: center; z-index: 10; padding: calc(24px + var(--st)) max(16px, var(--sr)) calc(24px + var(--sb)) max(16px, var(--sl)); overflow-y: auto; touch-action: pan-y; }
+  .screen.dim { background: radial-gradient(ellipse at center, rgba(8,10,12,.55), rgba(8,10,12,.92)); }
+  #screen-title { background: linear-gradient(180deg, rgba(8,12,14,.15) 0%, rgba(8,12,14,.35) 45%, rgba(8,12,14,.9) 100%); }
+  .title-wrap { width: min(620px, 100%); display: grid; gap: 22px; text-align: center; }
+  .eyebrow { font-size: 12px; letter-spacing: .32em; text-transform: uppercase; color: var(--gold); font-weight: 700; }
+  h1 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: clamp(56px, 14vw, 116px); line-height: .9; letter-spacing: .01em;
+       background: linear-gradient(180deg, #ffe7b0 10%, #ff9a3d 55%, #b8452a 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+       filter: drop-shadow(0 4px 18px rgba(255,120,40,.35)); text-wrap: balance; }
+  .lede { margin: 0 auto; max-width: 46ch; font-size: 17px; line-height: 1.45; color: #e3d9c6; text-shadow: 0 1px 6px rgba(0,0,0,.8); text-wrap: balance; }
+  .cta { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .btn { height: 50px; padding: 0 26px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); font-size: 17px; font-weight: 800; letter-spacing: .02em; cursor: pointer; display: inline-grid; align-content: center; }
+  .btn.primary { background: linear-gradient(180deg, #ff9a3d, #d9612a); border-color: #ffb27a; color: #1c0f06; box-shadow: 0 6px 24px rgba(255,120,40,.35); }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn small { display: block; font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+  .btn:hover { border-color: rgba(255,138,61,.6); }
+  .howto { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: left; }
+  @media (max-width: 560px) { .howto { grid-template-columns: 1fr; } .howto div { padding: 8px 12px; } }
+  .howto div { padding: 10px 12px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); font-size: 13px; line-height: 1.35; color: #d8cfbe; }
+  .howto b { display: block; font-family: var(--f-display); font-weight: 400; font-size: 17px; color: var(--parch); margin-bottom: 2px; }
+  .keys { font-size: 12px; color: var(--muted); line-height: 1.7; }
+  .keys kbd { font: 700 11px var(--f-ui); color: var(--parch); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: rgba(255,255,255,.04); }
+  body.touch .keys.desk { display: none; }
+  .keys.mob { display: none; }
+  body.touch .keys.mob { display: block; }
+  .panel { width: min(460px, 100%); padding: 26px 24px; display: grid; gap: 16px; text-align: center; background: rgba(16,20,22,.94); border: 1px solid var(--line); border-radius: 16px; }
+  .panel h2 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: 44px; line-height: 1; }
+  .panel p { margin: 0; color: #d8cfbe; line-height: 1.45; }
+  #screen-dead h2 { color: #ff8f8f; }
+  #screen-win h2 { background: linear-gradient(180deg, #fff1c9, #e8c86a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #winStats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  #winStats div { padding: 10px; border-radius: 10px; background: rgba(255,255,255,.04); border: 1px solid var(--line); }
+  #winStats b { display: block; font-family: var(--f-display); font-weight: 400; font-size: 30px; color: var(--gold); font-variant-numeric: tabular-nums; }
+  #winStats span { font-size: 12px; color: var(--muted); }
+
+  @media (max-width: 640px) {
+    #stats { width: 128px; padding: 8px; gap: 5px; }
+    .stat { grid-template-columns: 14px 1fr; gap: 6px; }
+    .stat img { width: 14px; height: 14px; }
+    #minimap { width: 92px; height: 92px; }
+    .hbtn { min-width: 36px; height: 36px; padding: 0 8px; font-size: 12px; }
+    #clock { left: calc(150px + var(--sl)); transform: none; padding: 4px 8px 4px 5px; gap: 6px; }
+    #clockSub { max-width: 64px; overflow: hidden; text-overflow: ellipsis; }
+    #dial { width: 26px; height: 26px; }
+    #clockDay { font-size: 16px; }
+    #clockSub { font-size: 10px; }
+    #toasts { top: calc(150px + var(--st)); width: 88vw; }
+    #bossbar { top: calc(150px + var(--st)); }
+    body.boss #toasts { top: calc(196px + var(--st)); }
+    #stand { top: calc(196px + var(--st)); }
+    .toast.gold { font-size: 14px; }
+    .toast { font-size: 13px; }
+    .slot { width: 40px; height: 40px; }
+    .slot img { width: 28px; height: 28px; }
+    #hotbar { gap: 3px; padding: 4px; }
+    #btnDrop { display: none; }
+    #kit img { width: 16px; height: 16px; }
+    #pickups { top: calc(150px + var(--st)); }
+    #side { gap: 6px; }
+  }
+  @media (max-width: 640px) { body.touch #bottom { bottom: calc(10px + var(--sb)); } }
+  body.touch #actions { bottom: calc(110px + var(--sb)); }
+  @media (prefers-reduced-motion: reduce) {
+    .toast, .pick, .stat.low .bar { animation: none; }
+  }
+</style>
+
+<div id="game">
+  <canvas id="view" aria-label="Emberwild game world"></canvas>
+
+  <div id="hud">
+    <div id="stats" class="card" aria-label="Survival stats">
+      <div class="stat" id="st-hp"><img data-glyph="hp" alt="Health"><div class="bar"><i id="bar-hp"></i></div></div>
+      <div class="stat" id="st-food"><img data-glyph="food" alt="Hunger"><div class="bar"><i id="bar-food"></i></div></div>
+      <div class="stat" id="st-water"><img data-glyph="water" alt="Thirst"><div class="bar"><i id="bar-water"></i></div></div>
+      <div class="stat" id="st-warm"><img data-glyph="warm" alt="Warmth"><div class="bar-wrap"><div class="bar"><i id="bar-warm"></i></div><span id="warmTrend"></span></div></div>
+      <div class="stat thin"><img data-glyph="stamina" alt="Stamina"><div class="bar"><i id="bar-stam"></i></div></div>
+      <div id="kit" hidden></div>
+    </div>
+
+    <div id="clock" class="card">
+      <canvas id="dial" width="68" height="68"></canvas>
+      <div><div id="clockDay">Day 1</div><div id="clockSub">Meadow · Clear</div></div>
+    </div>
+
+    <div id="side">
+      <div id="minimapWrap" class="card"><canvas id="minimap" width="220" height="220"></canvas></div>
+      <div id="buttons">
+        <button class="hbtn" id="btnCraft" type="button">Craft <kbd>C</kbd></button>
+        <button class="hbtn" id="btnMap" type="button">Map <kbd>M</kbd></button>
+        <button class="hbtn" id="btnSound" type="button" aria-pressed="false" title="Sound">♪</button>
+        <button class="hbtn" id="btnPause" type="button" title="Pause">II</button>
+      </div>
+    </div>
+
+    <div id="toasts" aria-live="polite"></div>
+    <div id="pickups"></div>
+    <div id="bossbar" hidden><div id="bossName"></div><div class="bar"><i id="bossFill"></i></div></div>
+    <div id="stand" class="card" hidden>
+      <span>Until dawn</span><div class="bar"><i id="standFill"></i></div>
+      <span>Beacon</span><div class="bar"><i id="standBeacon"></i></div>
+    </div>
+
+    <div id="bottom">
+      <div id="pouch"></div>
+      <div id="hotrow">
+        <div id="hotbar" class="card" style="position:relative"><div id="selname"></div></div>
+        <button class="hbtn" id="btnDrop" type="button" title="Drop selected">Drop <kbd>Q</kbd></button>
+      </div>
+    </div>
+
+    <div id="touchpad">
+      <div id="stick" hidden><div id="stickKnob"></div></div>
+      <div id="actions">
+        <button class="tbtn" id="btnE" type="button"><span id="btnELabel">Use</span></button>
+        <button class="tbtn" id="btnA" type="button"><span id="btnALabel">Strike</span></button>
+      </div>
+    </div>
+  </div>
+
+  <aside id="craft" hidden aria-label="Crafting">
+    <header>
+      <div><h2>Crafting</h2><p>Materials come from your pouch. Tools join your kit and are used automatically.</p></div>
+      <button id="craftClose" type="button">Close</button>
+    </header>
+    <div id="craftList"></div>
+  </aside>
+
+  <div id="bigmap" hidden>
+    <figure>
+      <canvas id="bigmapCanvas"></canvas>
+      <figcaption>
+        <b>Your map</b>
+        <span class="legend"><span><i style="background:#b48cff"></i>Stone circle</span><span><i style="background:#ff9a3d"></i>Fire</span><span><i style="background:#efe6d6"></i>Bedroll</span><span><i style="background:#ffe9a8"></i>Grave</span><span>Tap to close</span></span>
+      </figcaption>
+    </figure>
+  </div>
+
+  <section id="screen-title" class="screen">
+    <div class="title-wrap">
+      <div class="eyebrow">An open-world survival game</div>
+      <h1>Emberwild</h1>
+      <p class="lede">Washed ashore on an endless wild coast. Gather, craft and keep your fire burning. Three stone circles each hide an Ancient Shard and a guardian to match. Forge the Beacon and survive its last night.</p>
+      <div class="cta">
+        <button class="btn primary" id="btnNew" type="button">New journey</button>
+        <button class="btn" id="btnContinue" type="button" hidden>Continue<small id="continueNote"></small></button>
+      </div>
+      <div class="howto">
+        <div><b>Survive</b>Watch health, hunger, thirst and warmth. Nights are cold and the shades come out.</div>
+        <div><b>Build</b>Campfires scare beasts away. Walls and spike traps hold the line.</div>
+        <div><b>Conquer</b>Defeat three Stone Guardians, then defend the Beacon until dawn.</div>
+      </div>
+      <p class="keys desk"><kbd>WASD</kbd> move · <kbd>Shift</kbd> sprint · <kbd>Click</kbd> strike / use · <kbd>E</kbd> pick up, drink, interact · <kbd>1-8</kbd> hotbar · <kbd>C</kbd> craft · <kbd>M</kbd> map · <kbd>Q</kbd> drop</p>
+      <p class="keys mob">Drag anywhere on the left to move, push to the edge to sprint. <b>Strike</b> attacks or uses your item, <b>Use</b> picks up, drinks and interacts.</p>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="screen dim" hidden>
+    <div class="panel">
+      <h2>Paused</h2>
+      <p>Your progress saves automatically.</p>
+      <div class="cta"><button class="btn primary" id="btnResume" type="button">Resume</button><button class="btn" id="btnQuit" type="button">Save and quit</button></div>
+      <p class="keys desk"><kbd>WASD</kbd> move · <kbd>Shift</kbd> sprint · <kbd>Click</kbd> strike / use · <kbd>Right-click</kbd> or <kbd>E</kbd> interact · <kbd>Wheel</kbd> or <kbd>1-8</kbd> hotbar · <kbd>C</kbd> craft · <kbd>M</kbd> map · <kbd>Q</kbd> drop</p>
+    </div>
+  </section>
+
+  <section id="screen-dead" class="screen dim" hidden>
+    <div class="panel">
+      <h2>You perished</h2>
+      <p id="deathCause"></p>
+      <p id="deathNote"></p>
+      <div class="cta"><button class="btn primary" id="btnRespawn" type="button">Rise again</button></div>
+    </div>
+  </section>
+
+  <section id="screen-win" class="screen dim" hidden>
+    <div class="panel">
+      <h2>Rescued</h2>
+      <p>Dawn breaks over the Beacon and a ship's horn answers from the horizon. You made it out of the Emberwild.</p>
+      <div id="winStats"></div>
+      <div class="cta"><button class="btn primary" id="btnKeep" type="button">Keep exploring</button></div>
+    </div>
+  </section>
+</div>
+
+<script src="js/util.js"></script>
+<script src="js/data.js"></script>
+<script src="js/world.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/game.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
